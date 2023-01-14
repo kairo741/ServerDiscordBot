@@ -1,13 +1,14 @@
 from asyncio import sleep
-from random import randint
+from random import choice
+from os import environ
 
 import discord
 from discord.ext import commands
-from mcstatus import MinecraftServer
+from mcstatus import JavaServer
 
-client = commands.Bot(command_prefix="❒")
-serverPort = input("Qual a porta do server? ")
-server = MinecraftServer.lookup(f"localhost:{serverPort}")
+client = commands.Bot(command_prefix=commands.when_mentioned_or("❒"), intents=discord.Intents.all(), help_command=None)
+server_port = input("Qual a porta do server? ")
+server = JavaServer.lookup(f"localhost:{server_port}")
 
 status = server.status()
 onPlayers = status.players.online
@@ -16,33 +17,57 @@ maxPlayers = status.players.max
 
 @client.event
 async def on_ready():
-    serverEmbed = discord.Embed(title="❒ Superidolඞ Server ❒",
-                                description="""
-:green_circle: :green_circle::green_circle::green_circle::green_circle:  :green_circle:
-:green_circle:ඞ❒ඞ❒ඞ❒ඞ:green_circle:
-:green_circle:❒Server On❒ :green_circle:
-:green_circle:ඞ❒ඞ❒ඞ❒ඞ:green_circle:
-:green_circle: :green_circle::green_circle::green_circle::green_circle:  :green_circle:
-		""",
-                                colour=discord.Colour.dark_green())
-    serverEmbed.add_field(name="Porta", value=serverPort, inline=True)
-    serverEmbed.add_field(name="Radmin info", value="❒info", inline=True)
-    channel = client.get_channel(789557217698381824)
-    await channel.send(embed=serverEmbed)
-    await updatePresenceWhile()
+    await sync_slash_commands()
+    await send_is_online_message()
+    await update_presence_while()
 
 
-async def updatePresenceWhile():
-    while (True):
+async def send_is_online_message():
+    server_embed = discord.Embed(title="❒ Superidolඞ Server ❒",
+                                 colour=discord.Colour.dark_green(),
+                                 description="""```⬛️⬛️⬛️⬛️⬛️⬛️⬛️⬛️⬛️⬛️
+⬛️📗📗📗📗📗📗📗📗⬛️
+⬛️📗📗📗📗📗📗📗📗⬛️
+⬛️📗⬛️⬛️📗📗⬛️⬛️📗⬛️
+⬛️📗⬛️⬛️📗📗⬛️⬛️📗⬛️
+⬛️📗📗📗⬛️⬛️📗📗📗⬛️
+⬛️📗📗⬛️⬛️⬛️⬛️📗📗⬛️
+⬛️📗📗⬛️⬛️⬛️⬛️📗📗⬛️
+⬛️📗📗⬛️📗📗⬛️📗📗⬛️
+⬛️⬛️⬛️⬛️⬛️⬛️⬛️⬛️⬛️⬛️
+❒❒ ඞ 🅂🄴🅁🅅🄴🅁 🄾🄽 ඞ ❒❒```""")
+
+    server_embed.add_field(name="🚪 | Porta", value=server_port, inline=True)
+    server_embed.add_field(name="🛡️ | Radmin info", value="❒radmin", inline=True)
+
+    server_embed.add_field(name='', value='', inline=False)
+
+    server_embed.add_field(name="ℹ️ | Info geral", value="❒info", inline=True)
+    server_embed.add_field(name="📙 | Comandos", value="❒help", inline=True)
+    channel = client.get_channel(967174674381410376)
+    # channel = client.get_channel(789557217698381824)
+    await channel.send(embed=server_embed)
+
+
+async def sync_slash_commands():
+    try:
+        synced = await client.tree.sync()
+        print(f'{len(synced)} slash commands foram sincronizados')
+    except Exception as e:
+        print(e)
+
+
+async def update_presence_while():
+    while True:
         await sleep(30)
-        updateInfo()
+        update_info()
         await client.change_presence(
             status=discord.Status.online,
             activity=discord.Game(
                 name=f"{onPlayers}/{maxPlayers} Players ❒Superidolඞ Server❒"))
 
 
-def updateInfo():
+def update_info():
     global status
     global onPlayers
     global maxPlayers
@@ -50,46 +75,74 @@ def updateInfo():
     onPlayers = status.players.online
     # print(onPlayers)
     maxPlayers = status.players.max
-    # print(maxPlayers)c
+    # print(maxPlayers)
 
 
-@client.command("info")
-async def updatePresence(context):
-    titleEmbed = discord.Embed(
-        title="Server Infos",
+@client.hybrid_command(name="info", with_app_command=True, description="Mostra todas as informações do server ඞ")
+async def update_presence(context):
+    title_embed = discord.Embed(
+        title="⛏🧱 Server Infos ⛏🧱",
         description="Veja as infos do servidor!",
         colour=discord.Colour.dark_gold(),
     )
-    titleEmbed.set_thumbnail(
-        url="https://xboxplay.games/uploadStream/23781.jpg")
+    title_embed.set_thumbnail(
+        url="https://feedback.minecraft.net/hc/article_attachments/6614151800461/Minecraft_WildUpdate_1920x1080.png")
 
-    radminEmbed = discord.Embed(title="Radmin",
-                                colour=discord.Colour.dark_blue())
-    radminEmbed.add_field(name="Ip", value="26.72.211.149")
-    radminEmbed.add_field(name="Nome da Rede",
-                          value="superidolඞ",
-                          inline=False)
-    radminEmbed.add_field(name="Senha", value="123456", inline=False)
-
-    serverEmbed = discord.Embed(title="❒ Superidolඞ Server ❒",
-                                colour=discord.Colour.green())
-    serverEmbed.add_field(name="Porta", value=serverPort, inline=False)
-    serverEmbed.add_field(name="Players Online",
-                          value=status.players.online,
-                          inline=True)
-    serverEmbed.add_field(name="Players Máximos",
-                          value=status.players.max,
-                          inline=True)
-
-    await context.send(embed=titleEmbed)
-    await context.send(embed=radminEmbed)
-    await context.send(embed=serverEmbed)
+    await context.send(embed=title_embed)
+    await radmin_info_command(context)
+    await server_info_command(context)
+    await players_command(context)
 
 
-@client.command("update")
-async def updateCommand(context):
+@client.hybrid_command(name="server", with_app_command=True, description="Mostra as informações do server")
+async def server_info_command(context):
+    message = discord.Embed(title="❒ Superidolඞ Server ❒",
+                            colour=discord.Colour.green())
+    message.add_field(name="Porta", value=server_port, inline=True)
+    message.add_field(name="Versão",
+                      value=f'Minecraft™ Java {status.version.name}',
+                      inline=True)
+    # Pular uma linha
+    message.add_field(name='',
+                      value='',
+                      inline=False)
+    message.add_field(name="👤 | Players Online",
+                      value=status.players.online,
+                      inline=True)
+    message.add_field(name="👤 | Máximo de Players",
+                      value=status.players.max,
+                      inline=True)
+    await context.send(embed=message)
 
-    updateInfo()
+
+@client.hybrid_command(name="radmin", with_app_command=True, description="Mostra as informações da rede do radmin")
+async def radmin_info_command(context):
+    message = discord.Embed(title="🛡️ Radmin 🛡️",
+                            colour=discord.Colour.dark_blue())
+    message.add_field(name="Ip", value="26.72.211.149")
+    message.add_field(name="Nome da Rede",
+                      value="superidolඞ",
+                      inline=False)
+    message.add_field(name="Senha", value="123456", inline=False)
+    await context.send(embed=message)
+
+
+@client.hybrid_command(name="players", with_app_command=True, description="Mostra os players online do servidor")
+async def players_command(context):
+    players = ""
+    for player in status.players.sample:
+        players += f' ■ {player.name}\n'
+
+    message = discord.Embed(
+        title="👥 | Players online:",
+        description=players if players != "" else "Nenhum player online!",
+        colour=discord.Colour.purple())
+    await context.send(embed=message)
+
+
+@client.hybrid_command(name="update", with_app_command=True, description="Atualizar manualmente o status do bot")
+async def update_command(context):
+    update_info()
 
     await client.change_presence(
         status=discord.Status.online,
@@ -102,50 +155,82 @@ async def updateCommand(context):
     await context.send(embed=message)
 
 
-@client.command("play")
-async def playMusicWithBG(context):
+@client.hybrid_command(name="help", with_app_command=True, description="Lista todos os comandos do bot",
+                       aliases=['commands', 'bot'])
+async def help_command(context):
+    message = discord.Embed(
+        title="📙 | Comandos do bot",
+        description="O prefixo para todos os comandos é: ❒\n Mas, o bot também conta com 'slash commands'",
+        colour=discord.Colour.orange())
+
+    for command in client.commands:
+        message.add_field(name=f"❒{command.name}", value=command.description, inline=True)
+
+    message.set_footer(text="Autor Kairo Amorim. https://github.com/kairo741",
+                       icon_url='https://cdn.icon-icons.com/icons2/2699/PNG/512/minecraft_logo_icon_168974.png')
+
+    await context.send(embed=message)
+
+
+@client.hybrid_command(name="play", with_app_command=True, description="Toca músicas de fundo da versão 1.18")
+async def play_music_with_bg(context):
     await sleep(5)
     message = discord.Embed()
-    message.set_image(url=getRadomImage())
+    message.set_image(url=get_random_image())
     await context.send(embed=message)
-    played = await playSound("1.18_sounds.mp3", context)
+    await play_sound("1.18_sounds.mp3", context)
 
 
-async def playSound(fileName, context):
+async def play_sound(file_name, context):
     connect = True
-    connectedChannel = discord.utils.get(client.voice_clients,
-                                         guild=context.guild)
+    connected_channel = discord.utils.get(client.voice_clients, guild=context.guild)
 
-    if connectedChannel == None:
-        connect = await joinChannel(context)
+    if connected_channel is None:
+        connect = await join_channel(context)
 
     if connect:
         channel = discord.utils.get(client.voice_clients, guild=context.guild)
         channel.play(
             discord.FFmpegPCMAudio(executable="C:/path/ffmpeg.exe",
-                                   source=fileName))
+                                   source=file_name))
         return True
 
 
-async def joinChannel(context):
-    authorVoice = context.message.author.voice
-    if authorVoice != None:
-        await authorVoice.channel.connect()
+async def join_channel(context):
+    author_voice = context.message.author.voice
+    if author_voice is not None:
+        await author_voice.channel.connect()
         return True
-
     else:
         return False
 
 
-def getRadomImage():
-    imgs = [
-        "https://preview.redd.it/g9rf0qn4drn61.png?width=2560&format=png&auto=webp&s=9df568e80f7e0262be26c58e765c0eab7d9a1e81",
-        "https://preview.redd.it/jrasamn4drn61.png?width=2560&format=png&auto=webp&s=e2f949dad5bb0307cf3e85dc40697315aa076157",
-        "https://preview.redd.it/ym3mpqn4drn61.png?width=2560&format=png&auto=webp&s=035bfba0db5fde1a767474b13ea52594af52b268",
-        "https://preview.redd.it/bx98hon4drn61.png?width=2560&format=png&auto=webp&s=23381294aa57cc7b141d296111a77f3c06503858"
-    ]
-    return (imgs[randint(0, len(imgs) - 1)])
+@client.hybrid_command(name="leave", with_app_command=True, description="Sai do chat de voz")
+async def disconnect(context):
+    channel = discord.utils.get(client.voice_clients, guild=context.guild)
+    if channel is not None:
+        await channel.disconnect(force=True)
 
-with open('token.txt') as f:
-    token = f.read()
-client.run(token)
+
+@client.hybrid_command(name="stop", with_app_command=True, description="Para o som que estiver tocando no chat de voz")
+async def stop_playing(context):
+    channel = discord.utils.get(client.voice_clients, guild=context.guild)
+    if channel is not None:
+        channel.stop()
+
+
+def get_random_image():
+    images = [
+        "https://preview.redd.it/g9rf0qn4drn61.png?width=2560&format=png&auto=webp&s"
+        "=9df568e80f7e0262be26c58e765c0eab7d9a1e81",
+        "https://preview.redd.it/jrasamn4drn61.png?width=2560&format=png&auto=webp&s"
+        "=e2f949dad5bb0307cf3e85dc40697315aa076157",
+        "https://preview.redd.it/ym3mpqn4drn61.png?width=2560&format=png&auto=webp&s"
+        "=035bfba0db5fde1a767474b13ea52594af52b268",
+        "https://preview.redd.it/bx98hon4drn61.png?width=2560&format=png&auto=webp&s"
+        "=23381294aa57cc7b141d296111a77f3c06503858"
+    ]
+    return choice(images)
+
+
+client.run(environ["BOT_TOKEN"])
