@@ -44,8 +44,8 @@ async def send_is_online_message():
 
     server_embed.add_field(name="ℹ️ | Info geral", value="❒info", inline=True)
     server_embed.add_field(name="📙 | Comandos", value="❒help", inline=True)
-    channel = client.get_channel(967174674381410376)
-    # channel = client.get_channel(789557217698381824)
+    # channel = client.get_channel(967174674381410376)  # Canal de teste
+    channel = client.get_channel(789557217698381824)  # Canal server boomers
     await channel.send(embed=server_embed)
 
 
