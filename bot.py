@@ -174,11 +174,21 @@ async def help_command(context):
 
 @client.hybrid_command(name="play", with_app_command=True, description="Toca músicas de fundo da versão 1.18")
 async def play_music_with_bg(context):
+    version = choice(["1.19", "1.18"])
+
     await sleep(5)
     message = discord.Embed()
     message.set_image(url=get_random_image())
+    message.title = f"Tocando soundtrack da versão {version}"
+    if version == "1.18":
+        message.set_thumbnail(
+            url='https://feedback.minecraft.net/hc/article_attachments/4414284675853/patchnotes_cavesandcliffs.jpg')
+    else:
+        message.set_thumbnail(
+            url="https://feedback.minecraft.net/hc/article_attachments/6614151800461/Minecraft_WildUpdate_1920x1080.png")
+
     await context.send(embed=message)
-    await play_sound("1.18_sounds.mp3", context)
+    await play_sound(f"files/{version}_soundtrack.mp3", context)
 
 
 async def play_sound(file_name, context):
@@ -228,7 +238,11 @@ def get_random_image():
         "https://preview.redd.it/ym3mpqn4drn61.png?width=2560&format=png&auto=webp&s"
         "=035bfba0db5fde1a767474b13ea52594af52b268",
         "https://preview.redd.it/bx98hon4drn61.png?width=2560&format=png&auto=webp&s"
-        "=23381294aa57cc7b141d296111a77f3c06503858"
+        "=23381294aa57cc7b141d296111a77f3c06503858",
+        "https://cdn.discordapp.com/attachments/868197064092295169/1063677102857146428/image.png",
+        "https://cdn.discordapp.com/attachments/868197064092295169/1063677605481545808/image.png",
+        "https://i.pinimg.com/originals/9c/f5/b6/9cf5b64d6cd2963ef96eabb4b2c1cbe6.jpg",
+        "https://cdn.wallpapersafari.com/66/87/soOkrM.jpg"
     ]
     return choice(images)
 
