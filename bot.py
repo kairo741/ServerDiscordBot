@@ -1,7 +1,7 @@
 from asyncio import sleep
 from random import choice
 from os import environ
-
+from datetime import datetime
 import discord
 from discord.ext import commands
 from mcstatus import JavaServer
@@ -9,6 +9,7 @@ from mcstatus import JavaServer
 client = commands.Bot(command_prefix=commands.when_mentioned_or("❒"), intents=discord.Intents.all(), help_command=None)
 server_port = input("Qual a porta do server? ")
 server = JavaServer.lookup(f"localhost:{server_port}")
+server_init_time = datetime.now()
 
 status = server.status()
 onPlayers = status.players.online
@@ -92,6 +93,7 @@ async def update_presence(context):
     await radmin_info_command(context)
     await server_info_command(context)
     await players_command(context)
+    await time_info_command(context)
 
 
 @client.hybrid_command(name="server", with_app_command=True, description="Mostra as informações do server")
@@ -112,6 +114,15 @@ async def server_info_command(context):
     message.add_field(name="👤 | Máximo de Players",
                       value=status.players.max,
                       inline=True)
+    await context.send(embed=message)
+
+
+@client.hybrid_command(name="time", with_app_command=True, description="Mostra o tempo online do server")
+async def time_info_command(context):
+    message = discord.Embed(title="⌛ Tempo online ⌛",
+                            colour=discord.Colour.dark_teal())
+    message.add_field(name="Iniciou-se", value=server_init_time.strftime("%d/%m/%Y %H:%M:%S"))
+    message.add_field(name="Online à", value=(datetime.now() - server_init_time))
     await context.send(embed=message)
 
 
