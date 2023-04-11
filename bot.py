@@ -8,6 +8,8 @@ from mcstatus import JavaServer
 
 client = commands.Bot(command_prefix=commands.when_mentioned_or("❒"), intents=discord.Intents.all(), help_command=None)
 server_port = input("Qual a porta do server? ")
+if server_port == "":
+    server_port = "26262"
 server = JavaServer.lookup(f"localhost:{server_port}")
 server_init_time = datetime.now()
 
@@ -122,7 +124,8 @@ async def time_info_command(context):
     message = discord.Embed(title="⌛ Tempo online ⌛",
                             colour=discord.Colour.dark_teal())
     message.add_field(name="Iniciou-se", value=server_init_time.strftime("%d/%m/%Y %H:%M:%S"))
-    message.add_field(name="Online à", value=(datetime.now() - server_init_time))
+    message.add_field(name="Online à", value=str(datetime.now() - server_init_time).split('.')[0])
+    # message.add_field(name="Online à", value=str(datetime.now() - server_init_time).split('.')[0]) # sem os milésimos
     await context.send(embed=message)
 
 
